@@ -53,7 +53,24 @@
 <body>
   <div class="container">
     <div class="title">Memo</div>
-    <div class="memo" contenteditable="true"></div>
+    <div class="memo" contenteditable="true" id="memo"></div>
   </div>
+
+  <script>
+    const memoEl = document.getElementById('memo');
+
+    // 저장된 내용 불러오기
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('memoContent');
+      if (saved) {
+        memoEl.innerText = saved;
+      }
+    });
+
+    // 입력 내용 저장
+    memoEl.addEventListener('input', () => {
+      localStorage.setItem('memoContent', memoEl.innerText);
+    });
+  </script>
 </body>
 </html>

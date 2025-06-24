@@ -2,106 +2,155 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>연금술 항아리</title>
+  <title>연금술 항아리 - 드래그 앤 드롭</title>
   <style>
+    :root {
+      --drop-zone-width: 500px;
+      --drop-zone-height: 420px;
+      --drop-zone-left: 48%;
+      --drop-zone-bottom: 6%;
+
+      --reset-left: 76%;
+      --reset-bottom: 75%;
+    }
+
     * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     html, body {
       height: 100%;
+      width: 100%;
       font-family: sans-serif;
-      text-align: center;
-    }
-
-    input[type="checkbox"] {
-      display: none;
+      background-color: #222;
     }
 
     .wrapper {
       position: relative;
       height: 100vh;
+      width: 100vw;
+      background-image: url('./image/Jars/NoneJar.png');
       background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
-      transition: background-image 0.3s;
-      background-image: url('./image/Jars/ExJar.png');
+      transition: background-image 0.3s ease-in-out;
     }
-    .text, .material-label {
+
+    .ingredients {
       position: absolute;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 5px black;
-      z-index: 2;
-    }
-
-    .text {
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .label-red {
-      bottom: 75%;
-      left: 28%;
-      cursor: pointer;
-    }
-
-    .label-blue {
-      bottom: 75%;
+      top: 4.2%;
       left: 45%;
       transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .ingredient {
+      cursor: grab;
+      transition: opacity 0.3s ease;
+      user-select: none;
+    }
+
+    .drop-zone {
+      position: absolute;
+      width: var(--drop-zone-width);
+      height: var(--drop-zone-height);
+      left: var(--drop-zone-left);
+      bottom: var(--drop-zone-bottom);
+      transform: translateX(-50%);
+      background: transparent;
+      border: none; /* ✅ 여기서 사각형 제거 */
+      z-index: 5;
+      pointer-events: auto;
+    }
+
+    .reset-button {
+      position: absolute;
+      bottom: var(--reset-bottom);
+      left: var(--reset-left);
+      transform: translateX(-50%);
+      color: white;
+      font-size: 1.2em;
+      text-decoration: none;
       cursor: pointer;
-    }
-
-    .label-green {
-      bottom: 75%;
-      right: 40%;
-      cursor: pointer;
-    }
-
-    #red:checked ~ #blue:not(:checked) ~ #green:not(:checked) ~ .wrapper {
-      background-image: url('./image/Jars/red.png');
-    }
-
-    #red:not(:checked) ~ #blue:checked ~ #green:not(:checked) ~ .wrapper {
-      background-image: url('./image/Jars/blue.png');
-    }
-
-    #red:not(:checked) ~ #blue:not(:checked) ~ #green:checked ~ .wrapper {
-      background-image: url('./image/Jars/green.png');
-    }
-
-    #red:checked ~ #blue:checked ~ #green:not(:checked) ~ .wrapper {
-      background-image: url('./image/Jars/purple.png');
-    }
-
-    #red:checked ~ #blue:not(:checked) ~ #green:checked ~ .wrapper {
-      background-image: url('./image/Jars/yellow.png');
-    }
-
-    #red:not(:checked) ~ #blue:checked ~ #green:checked ~ .wrapper {
-      background-image: url('./image/Jars/mint.png');
-    }
-
-    #red:checked ~ #blue:checked ~ #green:checked ~ .wrapper {
-      background-image: url('./image/Jars/white.png');
+      user-select: none;
+      z-index: 10;
     }
   </style>
 </head>
 <body>
-  <form>
-    <input type="checkbox" id="red">
-    <input type="checkbox" id="blue">
-    <input type="checkbox" id="green">
+  <div class="ingredients">
+    <img src="./image/Jars/Fire-removebg-preview.png" id="red" class="ingredient" draggable="true">
+    <img src="./image/Jars/Water-removebg-preview.png" id="blue" class="ingredient" draggable="true">
+    <img src="./image/Jars/leaf-removebg-preview.png" id="green" class="ingredient" draggable="true">
+  </div>
 
-    <div class="wrapper">
-      <label class="material-label label-red" for="red">ㅤㅤㅤㅤㅤ<br>ㅤㅤㅤㅤㅤ</label>
-      <label class="material-label label-blue" for="blue">ㅤㅤㅤㅤㅤ<br>ㅤㅤㅤㅤㅤ</label>
-      <label class="material-label label-green" for="green">ㅤㅤㅤㅤㅤ<br>ㅤㅤㅤㅤㅤ</label>
-    </div>
-  </form>
+  <div class="wrapper">
+    <div class="drop-zone" ondragover="event.preventDefault()" ondrop="handleDrop(event)"></div>
+    <div class="reset-button" onclick="resetJar()">ㅤㅤㅤ<br>ㅤㅤㅤ<br>ㅤㅤㅤ<br>ㅤㅤㅤ<br>ㅤㅤㅤ</div>
+  </div>
+
+  <script>
+    const droppedItems = new Set();
+    let currentDragged = null;
+    let droppedSuccessfully = false;
+
+    document.querySelectorAll('.ingredient').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        currentDragged = e.target;
+        droppedSuccessfully = false;
+        e.dataTransfer.setData("text/plain", e.target.id);
+        e.target.style.opacity = '0';
+      });
+
+      el.addEventListener('dragend', () => {
+        if (!droppedSuccessfully && currentDragged) {
+          currentDragged.style.opacity = '1';
+        }
+        currentDragged = null;
+      });
+    });
+
+    function handleDrop(event) {
+      event.preventDefault();
+      const id = event.dataTransfer.getData("text/plain");
+
+      if (!droppedItems.has(id)) {
+        droppedItems.add(id);
+        document.getElementById(id).style.opacity = '0';
+        droppedSuccessfully = true;
+        updateJarImage();
+      }
+    }
+
+    function updateJarImage() {
+      const jar = document.querySelector('.wrapper');
+      const sorted = Array.from(droppedItems).sort().join('-');
+
+      const jarImages = {
+        'blue': 'blue.png',
+        'green': 'green.png',
+        'red': 'red.png',
+        'blue-green': 'mint.png',
+        'blue-red': 'purple.png',
+        'green-red': 'yellow.png',
+        'blue-green-red': 'white.png'
+      };
+
+      jar.style.backgroundImage = `url('./image/Jars/${jarImages[sorted] || 'NoneJar.png'}')`;
+    }
+
+    function resetJar() {
+      droppedItems.clear();
+      document.querySelectorAll('.ingredient').forEach(el => {
+        el.style.opacity = '1';
+        el.setAttribute('draggable', 'true');
+      });
+      document.querySelector('.wrapper').style.backgroundImage = "url('./image/Jars/NoneJar.png')";
+    }
+  </script>
 </body>
 </html>
